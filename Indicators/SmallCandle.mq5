@@ -33,7 +33,7 @@ int OnInit()
    SetIndexBuffer(3, CloseBuffer, INDICATOR_DATA);
    SetIndexBuffer(4, ColorBuffer, INDICATOR_COLOR_INDEX);
    IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
-   IndicatorSetString(INDICATOR_SHORTNAME,"Small candle");
+   IndicatorSetString(INDICATOR_SHORTNAME, "Small candle");
    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, 0.0);
    return(INIT_SUCCEEDED);
   }
@@ -70,16 +70,18 @@ int OnCalculate(const int rates_total,
 
    for(int i=start; i<rates_total && !IsStopped(); i++)
      {
-      if(high[i] - low[i] <= 0 || MathAbs(open[i] - close[i]) / MathAbs(high[i] - low[i]) > SmallCandleMaxBodyRangeRatio)
-        {
-         continue;
-        }
+      bool isSmallCandle = high[i] - low[i] > 0 &&
+                           MathAbs(open[i] - close[i]) / (high[i] - low[i]) <= SmallCandleMaxBodyRangeRatio;
 
-      OpenBuffer[i] = open[i];
-      HighBuffer[i] = high[i];
-      LowBuffer[i] = low[i];
-      CloseBuffer[i] = close[i];
-      ColorBuffer[i] = 0.0;
+      OpenBuffer[i] = isSmallCandle ? open[i] : 0.0;
+      HighBuffer[i] = isSmallCandle ? high[i] : 0.0;
+      LowBuffer[i] = isSmallCandle ? low[i] : 0.0;
+      CloseBuffer[i] = isSmallCandle ? close[i] : 0.0;
+
+      if(isSmallCandle)
+        {
+         ColorBuffer[i] = 0.0;
+        }
      }
 
 //--- return value of prev_calculated for next call
